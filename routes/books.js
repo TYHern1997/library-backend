@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const { verifyToken } = require('../middleware/auth');
 
 const validateBook = (b) => {
     const errors = [];
@@ -33,7 +34,7 @@ router.get('/', async (req, res) => {
 
 
 // POST /books
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
     const errors = validateBook(req.body);
     if (errors.length) return res.status(400).json({ error: errors.join(', ') });
 
@@ -51,8 +52,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// PUT /books/:id
-router.put('/:id', async (req, res) => {
+/// PUT /books/:id
+router.put('/:id', verifyToken, async (req, res) => {
     const errors = validateBook(req.body);
     if (errors.length) return res.status(400).json({ error: errors.join(', ') });
 
@@ -72,9 +73,8 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-
 // DELETE /books/:id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const result = await pool.query('DELETE FROM books WHERE id=$1 RETURNING id', [req.params.id]);
         if (!result.rows.length) return res.status(404).json({ error: 'Book not found' });
