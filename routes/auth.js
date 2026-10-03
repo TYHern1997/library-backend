@@ -70,6 +70,23 @@ router.get('/users', verifyToken, requireAdmin, async (req, res) => {
     }
 });
 
+// GET /auth/users/:id/history (admin only)
+router.get('/users/:id/history', verifyToken, requireAdmin, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT b.title, br.borrowed_at
+       FROM borrows br
+       JOIN books b ON br.book_id = b.id
+       WHERE br.user_id = $1
+       ORDER BY br.borrowed_at DESC`,
+            [req.params.id]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
 
 module.exports = router;
